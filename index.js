@@ -1,6 +1,7 @@
 var restify = require('restify');
 var axios = require('axios');
-
+const swagger = require('./test.json');
+const toJsonSchema = require('to-json-schema');
 
 
 
@@ -23,42 +24,68 @@ server.get('/make/swagger', function(req, res, next) {
 });
 
 function ChildRecursive(body) {
-    //console.log(typeof(body))
-    getElem(body)
+    let cabecera = '\n|Campo|Tipo|Descripción|Valores posibles - Formato|Valor de ejemplo|\n\n' +
+                    '|:---|:---:|:---:|:---:|---:|\n\n'
+    let compilado = getElem(body,'','',cabecera);
+    console.log(compilado);
 
 
 }
-function getElem(obj,prev='',type=''){
+function getElem(obj,prev='',type='',common=''){
+
+
     if (prev !== '')
-    {    console.log('|'+prev+'|'+type+'||')
+    {    //console.log('|'+prev+'|'+type+'||||\n')
+        common += '|'+prev+'|'+type+'||||\n\n';
     }
     Object.keys(obj).forEach(function (item) {
 
-        if (typeof obj[item] === 'object' ||  Array.isArray(obj[item])  && obj[item] !== null)
-        {   if(prev === '')
+        if (typeof obj[item] === 'object' || Array.isArray(obj[item]) && obj[item] !== null)
         {
-            getElem(obj[item],item,typeof(obj[item]))
-        }
-        else
-        {
-            let buldprev=prev+'.'+item;
-            getElem(obj[item],buldprev,typeof(obj[item]))
+            if (Array.isArray(obj[item]) && obj[item] !== null )
+            {
+                if(prev === '')
+                {
+                    let input = obj[item].slice(0,1);
 
+                    getElem(input,item,'Array',common)
+                }
+                else
+                {
+                    let buldprev=prev+'.'+item;
+                    let input = obj[item].slice(0,1);
 
-        }
-        }
-        else
+                    getElem(input,buldprev,'Array',common)
+                }
+
+            }else{
+            console.log(obj[item]);
+            if(prev === '')
+            {
+                getElem(obj[item],item,typeof(obj[item]),common)
+            }
+            else
             {
                 let buldprev=prev+'.'+item;
-                console.log('|'+buldprev+'|'+typeof obj[item]+'||')
-
-
+                getElem(obj[item],buldprev,typeof(obj[item]),common)
             }
-    });
+            }
+        }
 
+        else {
+            let buldprev;
+            if(prev === ''){
+                buldprev=item;}else{ buldprev=prev+'.'+item;}
+                //console.log('|'+buldprev+'|'+typeof obj[item]+'|||'+obj[item]+'|\n');
+                common += '|'+buldprev+'|'+typeof obj[item]+'|||'+obj[item]+'|\n\n';
+        }
+    }
+    );
+
+    return common;
 }
 
-function SendPeticion(body, headers) {
+async  function SendPeticionPOST(url,data) {
     let config = {
         headers: {
             "applicationCode":"ATG",
@@ -66,33 +93,48 @@ function SendPeticion(body, headers) {
             "countryCode":"CHL",
             "requestTimestamp":"2018-12-12T12:12:12.444-03:00",
             "Content-Type": "application/json"
-
         }
     };
-    post(headers['apigateway'],body,config).then(function (response) {
-        console.log(response.data);
-    })
-        .catch(function (error) {
-            console.log(error);
-        });
+    try {
+        const response = await axios.post('http://localhost:8081/'+url,data,config);
+        return response.data;
+        
+    }
+    catch (e) {
+        console.log(e);
+    }
 
 
 }
-function get(url) {
-    return axios.get(url);
+
+function adddefinitionreq(jsonbodyObj)
+{
+   let schema = toJsonSchema(jsonbodyObj,{strings: {detectFormat: true}});
+    swagger.definitions.RequestCreate = schema;
 }
-function post(url) {
-    return axios.post(url);
+function adddefinitionres(jsonbodyObj)
+{
+    let schema = toJsonSchema(jsonbodyObj,{strings: {detectFormat: true}});
+    swagger.definitions.Response = schema;
+}
+function countProperties(obj) {
+    return Object.keys(obj).length;
 }
 
-
-server.post('/make/swagger', function(req, res, next) {
+server.post('/make/swagger/*', async function (req, res, next) {
+    swagger.info.title = "APIM-example";
+    swagger.info.description = "Ejemplo de Creacion de un swagger";
     ChildRecursive(req.body);
-    SendPeticion(req.body,req.headers);
-
-    res.send(200);
+    //adddefinitionreq(req.body);
+    //let response = await SendPeticionPOST(req.params[Object.keys(req.params)[0]], req.body);
+    //ChildRecursive(response);
+    //adddefinitionres(response);
+    //res.setHeader('content-type', 'application/json');
+    //res.send(JSON.parse(JSON.stringify(swagger)));
     return next();
 });
+
+
 server.listen(8080, function() {
     console.log('%s listening at %s', server.name, server.url);
 });

@@ -1,0 +1,348 @@
+{
+  "definitions": {
+    "ResponseError400": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError400_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError400_result": {
+      "properties": {
+        "code": {
+          "example": "400",
+          "type": "string"
+        },
+        "description": {
+          "example": "Solicitud incorrecta",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "La solicitud contiene sintaxis errónea y no debería repetirse.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError401": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError401_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError401_result": {
+      "properties": {
+        "code": {
+          "example": "401",
+          "type": "string"
+        },
+        "description": {
+          "example": "No autorizado",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "El token de autorización ingresado es inválido.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError404": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError404_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError404_result": {
+      "properties": {
+        "code": {
+          "example": "404",
+          "type": "string"
+        },
+        "description": {
+          "example": "No encontrado",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "Recurso no encontrado.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError405": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError405_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError405_result": {
+      "properties": {
+        "code": {
+          "example": "405",
+          "type": "string"
+        },
+        "description": {
+          "example": "Metodo no permitido",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "Una petición fue hecha a una URI utilizando un método de solicitud no soportado por dicha URI.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError422": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError422_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError422_result": {
+      "properties": {
+        "code": {
+          "example": "422",
+          "type": "string"
+        },
+        "description": {
+          "example": "Entidad no procesada",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "La solicitud está bien formada pero fue imposible seguirla debido a errores semánticos.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError429": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError429_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError429_result": {
+      "properties": {
+        "code": {
+          "example": "429",
+          "type": "string"
+        },
+        "description": {
+          "example": "Límite de solicitudes excedido",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "Se ha excedido el límite de solicitudes para un período de tiempo determinado.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    },
+    "ResponseError500": {
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/ResponseError500_result"
+        }
+      },
+      "type": "object"
+    },
+    "ResponseError500_result": {
+      "properties": {
+        "code": {
+          "example": "500",
+          "type": "string"
+        },
+        "description": {
+          "example": "Error en el servidor",
+          "type": "string"
+        },
+        "descriptionDetail": {
+          "example": "El servidor ha encontrado una error inesperado.",
+          "type": "string"
+        },
+        "responseTimestamp": {
+          "example": "2018/05/10T17:49:56.080",
+          "type": "string"
+        },
+        "transactionId": {
+          "example": "0000016349eeab2d-2c9",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "host": "10.49.22.7:8443",
+  "info": {
+    "description": "",
+    "title": "",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/common/businessInteraction/v1/notifications": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "description": "\n# 1. Modo de Consumo\n## 1.1 URI\n| Ambiente | API Endpoint                                              | Token Endpoint                      |\n| -------- |:----------------------------------------------------------|:----------------------------------------------------|\n| UAT      |https://apiinternaluat.entel.cl/common/businessInteraction/v1/notifications | https://apiinternaluat.entel.cl/auth/oauth/v2/token |\n| PRD      |https://apiinternal.entel.cl/common/businessInteraction/v1/notifications    | https://apiinternal.entel.cl/auth/oauth/v2/token   |\n\n\n# 2. Estructura de entrada (Request)\n## 2.1. Parametros Header\n\n| Campo            | Tipo              | Obligatorio | Descripcion                                                                                                                                                           | Valores posibles - Formato               |\n| -----------------| ------------------| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------------------------------------|\n| Content-Type     | string            | Si          | Indica el tipo de contenido del cuerpo del mensaje enviado al destinatario                                                                                            | application/json; charset=utf-8          |\n| Authorization    | string            | Si          | Token de acceso alfanumerico obtenido de la autenticación OAuth                                                                                                       | Bearer xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx  |\n| applicationCode  | string            | Si          | Código único que representa al sistema consumidor. Es responsabilidad del consumidor enviar este valor                                                                | [Posibles valores](https://tdentel.atlassian.net/wiki/download/attachments/565838019/Master%20Headers%20Codes%20eUSB.xlsx?version=3&modificationDate=1531253559009&cacheVersion=1&api=v2)                  |\n| countryCode      | string            | Si          | Identifica el país desde donde se origina la petición. Es responsabilidad del consumidor enviar este valor                                                            | CHL (Chile), PER (Perú)                  |\n| consumerId       | string            | Si          | Código único de identificación de la ejecución, que identifica el evento del consumidor. Es responsabilidad del consumir enviar este valor según las reglas definidas |[Reglas](https://tdentel.atlassian.net/wiki/download/attachments/1151374/Master%20Headers%20Codes%20eUSB.xlsx?api=v2) |\n| requestTimestamp | string (Datetime) | Si          | Fecha, hora y timezone en el cual se envía la petición del consumidor.                                                                                                | YYYY-MM-DDThh:mm:ss.sss-Z                |  \n\n\n\n## 3.2. Estructura Request Body\n\n | Campo | Tipo | Obligatorio | Descripcion |\n|-------------------------------------|--------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|\n| Notification.externalID | string | NO | Id de   trazabilidad del sistema origen |\n| Notification.maximumAttempts | string | NO | Indica   cuantos intentos se realizaran. Se tendrá una configuración por default. |\n| Notification.maximumTimeframe | string | NO | Indica   el tiempo de espera antes de realizar otro intento de envío. Estará definido   en minutos y se tendrá una configuración por default. |\n| Notification.notificationType | string | NO | Id   del tipo de notificación configurada en NTGW. Esto permite utilizar un perfil   de horario, priorización de canales de salida y un template asociado en caso   de no enviar el mensaje de texto. |\n| Notification.originSystem | string | SI | Nombre   del sistema origen |\n| Notification.validityPeriod | string | NO | Indica   el tiempo dentro del cuál tiene sentido enviar el mensaje. Estará definido en   horas y se tendrá una configuración por default. |\n| Notification.Message.deliveryMethod | string | SI | Metodo   de envío de mensaje     CellPhone     Email |\n| Notification.Message.receiver | string | SI | Dirección   electrónica destino del mensaje a enviar por email.     Identificador de preferencias para email.     Si este valor no se envía debe enviarse el msisdnDestino de manera   obligatoria. |\n| Notification.Message.receiver | string | SI | Número   móvil destino del mensaje a enviar por sms o apps.     Formato Internacional.      Identificador de preferencias para sms o apps.      Si este valor no se envía, debe enviarse emailDestino de manera   obligatoria. |\n| Notification.Message.senderAlias | string | NO | Alias   del mensaje a enviar. Puede especificar la dirección electrónica de origen en   caso de email. Si no se envía esta valor, se enviará un valor por defecto en   el notificador. |\n| Notification.Message.senderAlias | string | NO | Alias   del mensaje a enviar. Puede especificar la dirección electrónica de origen en   caso de email. Si no se envía esta valor, se enviará un valor por defecto en   el notificador. |\n| Notification.Message.subject | string | NO | Asunto   del email a enviar. |\n| Notification.Message.textMessage | string | NO | Contenido   del mensaje de texto a enviar por sms o apps de largo máximo 160 caracteres.   Opcional en caso de no querer utilizar el mensaje del template. |\n| Notification.Message.textMessage | string | NO | Contenido   del mensaje de texto a enviar por email. Opcional en caso de no querer   utilizar el mensaje del template. |\n| Notification.Parameter.name | string | SI | Nombre   identificador de un parametro. |\n| Notification.Parameter.value | string | SI | Valor   a reemplazar. |                             \n  \n# 4. Estructura de salida (Response)\n\n| Campo | Tipo | Descripcion |\n|---------------------------|----------|--------------------------------------------------------------------|\n| result | Object | Objeto con el status   de la llamada  |\n| result.transactionId | string | Id de transacción   generado por el API Management. |\n| result.code | integer | Código interno de   respuesta |\n| result.description | string | Descripción interno   de respuesta |\n| result.descriptionDetail | string | Descripción detallada   o acción a realizar |\n| result.responseTimestamp | dateTime | Fecha y hora de   respuesta del API Management |\n",
+        "parameters": [
+          {
+            "default": "ATG",
+            "description": "Código único que representa al sistema consumidor.",
+            "in": "header",
+            "name": "applicationCode",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": "1234",
+            "description": "Código único de identificación de la ejecución, que identifica el evento del consumidor.",
+            "in": "header",
+            "name": "consumerId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": "CHL",
+            "description": "Identifica el país desde donde se origina la petición.",
+            "in": "header",
+            "name": "countryCode",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": "2018-12-12T12:12:12.444-03:00",
+            "description": "Fecha, hora y timezone en el cual se envía la petición del consumidor.",
+            "in": "header",
+            "name": "requestTimestamp",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Estructura request a envíar.",
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestCreate"
+            }
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Operación concluida exitosa",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "400": {
+            "description": "Error - Parámetros invalidos",
+            "schema": {
+              "$ref": "#/definitions/ResponseError400"
+            }
+          },
+          "401": {
+            "description": "Error - Error de autenticación",
+            "schema": {
+              "$ref": "#/definitions/ResponseError401"
+            }
+          },
+          "404": {
+            "description": "Error - Recurso no encontrado.",
+            "schema": {
+              "$ref": "#/definitions/ResponseError404"
+            }
+          },
+          "405": {
+            "description": "Error - Método no permitido",
+            "schema": {
+              "$ref": "#/definitions/ResponseError405"
+            }
+          },
+          "422": {
+            "description": "Error - Error de procesamiento de la solicitud",
+            "schema": {
+              "$ref": "#/definitions/ResponseError422"
+            }
+          },
+          "429": {
+            "description": "Error - Límite de solicitudes excedido",
+            "schema": {
+              "$ref": "#/definitions/ResponseError429"
+            }
+          },
+          "500": {
+            "description": "Error - Error inesperado en el servidor",
+            "schema": {
+              "$ref": "#/definitions/ResponseError500"
+            }
+          }
+        },
+        "summary": "Enviar notificaciones a los clientes, a través del Notifications Gateway",
+        "tags": [
+          "createNotifications"
+        ]
+      }
+    }
+  },
+  "schemes": [
+    "https"
+  ],
+  "swagger": "2.0"
+}

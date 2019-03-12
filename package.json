@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
-    "restify": "^8.0.0"
+    "restify": "^8.0.0",
+    "to-json-schema": "^0.2.0"
   }
 }
