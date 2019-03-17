@@ -1,10 +1,22 @@
 var restify = require('restify');
 var axios = require('axios');
 const swagger = require('./test.json');
+
 const toJsonSchema = require('to-json-schema');
 var renameKeys = require('rename-keys');
 
+const options = {
+    postProcessFnc: (type, schema, value, defaultFunc) =>
+        (type === 'integer' || type === 'string') ? {...schema,example:value} : defaultFunc(type, schema, value),
 
+};
+Object.prototype.isEmpty = function() {
+    for(var key in this) {
+        if(this.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
 
 var server = restify.createServer({
     name: 'Swaggeneame',
@@ -97,7 +109,7 @@ function getElem(obj,prev='',type='',common=''){
 
 }
 
-async  function SendPeticionPOST(url,data) {
+async  function SendPeticion(url,data,method) {
     let config = {
         headers: {
             "applicationCode":"ATG",
@@ -118,51 +130,138 @@ async  function SendPeticionPOST(url,data) {
 }
 function adddefinitionreq(jsonbodyObj)
 {
-   let schema = toJsonSchema(jsonbodyObj);
-    swagger.definitions.RequestCreate = schema;
+
+   return toJsonSchema(jsonbodyObj,options);
+    //swagger.definitions.RequestCreate = schema;
 }
 function adddefinitionres(jsonbodyObj)
 {
-    let schema = toJsonSchema(jsonbodyObj);
-    swagger.definitions.Response = schema;
+    return toJsonSchema(jsonbodyObj,options);
+    //swagger.definitions.Response = schema;
 }
 function countProperties(obj) {
     return Object.keys(obj).length;
 }
 
-function changes(request, response) {
-    let descriptiones = "\n# 1. Modo de Consumo\n## 1.1 URI\n| Ambiente | API Endpoint                                              | Token Endpoint                      |\n| -------- |:----------------------------------------------------------|:----------------------------------------------------|\n| UAT      |https://apiinternaluat.entel.cl/common/businessInteraction/v1/notifications | https://apiinternaluat.entel.cl/auth/oauth/v2/token |\n| PRD      |https://apiinternal.entel.cl/common/businessInteraction/v1/notifications    | https://apiinternal.entel.cl/auth/oauth/v2/token   |\n\n\n# 2. Estructura de entrada (Request)\n## 2.1. Parametros Header\n\n| Campo            | Tipo              | Obligatorio | Descripcion                                                                                                                                                           | Valores posibles - Formato               |\n| -----------------| ------------------| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------------------------------------|\n| Content-Type     | string            | Si          | Indica el tipo de contenido del cuerpo del mensaje enviado al destinatario                                                                                            | application/json; charset=utf-8          |\n| Authorization    | string            | Si          | Token de acceso alfanumerico obtenido de la autenticación OAuth                                                                                                       | Bearer xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx  |\n| applicationCode  | string            | Si          | Código único que representa al sistema consumidor. Es responsabilidad del consumidor enviar este valor                                                                | [Posibles valores](https://tdentel.atlassian.net/wiki/download/attachments/565838019/Master%20Headers%20Codes%20eUSB.xlsx?version=3&modificationDate=1531253559009&cacheVersion=1&api=v2)                  |\n| countryCode      | string            | Si          | Identifica el país desde donde se origina la petición. Es responsabilidad del consumidor enviar este valor                                                            | CHL (Chile), PER (Perú)                  |\n| consumerId       | string            | Si          | Código único de identificación de la ejecución, que identifica el evento del consumidor. Es responsabilidad del consumir enviar este valor según las reglas definidas |[Reglas](https://tdentel.atlassian.net/wiki/download/attachments/1151374/Master%20Headers%20Codes%20eUSB.xlsx?api=v2) |\n| requestTimestamp | string (Datetime) | Si          | Fecha, hora y timezone en el cual se envía la petición del consumidor.                                                                                                | YYYY-MM-DDThh:mm:ss.sss-Z                |  \n\n\n\n## 3.2. Estructura Request Body\n\n    "+ChildRecursive(request)+"              \n  \n# 4. Estructura de salida (Response)\n\n| Campo | Tipo | Descripcion |\n|---------------------------|----------|--------------------------------------------------------------------|\n"+ChildRecursive(response)+"\n";
-    //console.log(descriptiones)
+function deleteparameterBody() {
+    swagger.paths[Object.keys(swagger.paths)[0]].post.parameters.splice(4)
+
+}
+
+function changes(request, response,uri) {
+    let descriptiones
+    if( typeof request !== 'undefined') {
+         descriptiones = "\n# 1. Modo de Consumo\n## 1.1 URI\n| Ambiente | API Endpoint                                              | Token Endpoint                      |\n| -------- |:----------------------------------------------------------|:----------------------------------------------------|\n| UAT      |https://apiinternaluat.entel.cl/" + uri + " | https://apiinternaluat.entel.cl/auth/oauth/v2/token |\n| PRD      |https://apiinternal.entel.cl/" + uri + "    | https://apiinternal.entel.cl/auth/oauth/v2/token   |\n\n\n# 2. Estructura de entrada (Request)\n## 2.1. Parametros Header\n\n| Campo            | Tipo              | Obligatorio | Descripcion                                                                                                                                                           | Valores posibles - Formato               |\n| -----------------| ------------------| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------------------------------------|\n| Content-Type     | string            | Si          | Indica el tipo de contenido del cuerpo del mensaje enviado al destinatario                                                                                            | application/json; charset=utf-8          |\n| Authorization    | string            | Si          | Token de acceso alfanumerico obtenido de la autenticación OAuth                                                                                                       | Bearer xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx  |\n| applicationCode  | string            | Si          | Código único que representa al sistema consumidor. Es responsabilidad del consumidor enviar este valor                                                                | [Posibles valores](https://tdentel.atlassian.net/wiki/download/attachments/565838019/Master%20Headers%20Codes%20eUSB.xlsx?version=3&modificationDate=1531253559009&cacheVersion=1&api=v2)                  |\n| countryCode      | string            | Si          | Identifica el país desde donde se origina la petición. Es responsabilidad del consumidor enviar este valor                                                            | CHL (Chile), PER (Perú)                  |\n| consumerId       | string            | Si          | Código único de identificación de la ejecución, que identifica el evento del consumidor. Es responsabilidad del consumir enviar este valor según las reglas definidas |[Reglas](https://tdentel.atlassian.net/wiki/download/attachments/1151374/Master%20Headers%20Codes%20eUSB.xlsx?api=v2) |\n| requestTimestamp | string (Datetime) | Si          | Fecha, hora y timezone en el cual se envía la petición del consumidor.                                                                                                | YYYY-MM-DDThh:mm:ss.sss-Z                |  \n\n\n\n## 3.2. Estructura Request Body\n\n    " + ChildRecursive(request) + "              \n  \n# 4. Estructura de salida (Response)\n\n" + ChildRecursive(response) + "\n\n\n\n# 5.  Códigos de  retorno\n\nA continuacion los posibles codigos retornados para este servicio\n\n| Code Status  HTTP                    | Descripción HTTP                                                                              |\n|--------------------------------------|:----------------------------------------------------------------------------------------------|\n| 200 - OK                             | Respuesta estándar para peticiones correctas.                                                 |\n| 201 - CREADO                         | La petición ha sido completada y ha resultado en la creación de un nuevo recurso.             |\n| 400 - PETICIÓN INCORRECTA            | La solicitud contiene sintaxis errónea y no debería repetirse.                                |\n| 401 - NO AUTORIZADO                  | El token de autorización ingresado es inválido.                                               |\n| 404 - NO ENCONTRADO                  | Recurso no encontrado.                                                                        |\n| 405 - MÉTODO NO PERMITIDO            | Una peticiÓn fue hecha a una URI utilizando un método de solicitud no soportado por dicha URI |\n| 422 - ENTIDAD NO PROCESADA           | La solicitud está bien formada pero fue imposible seguirla debido a errores semánticos.       |\n| 429 - LIMITE DE SOLICITUDES EXCEDIDO | Se ha excedido el límite de solicitudes para un período de tiempo determinado .               | \n| 500 - ERROR EN EL SERVIDOR           | El servidor ha encontrado un error inesperado.                                                |\n";
+        //console.log(descriptiones)
+    }
+    else{
+         descriptiones = "\n# 1. Modo de Consumo\n## 1.1 URI\n| Ambiente | API Endpoint                                              | Token Endpoint                      |\n| -------- |:----------------------------------------------------------|:----------------------------------------------------|\n| UAT      |https://apiinternaluat.entel.cl/" + uri + " | https://apiinternaluat.entel.cl/auth/oauth/v2/token |\n| PRD      |https://apiinternal.entel.cl/" + uri + "    | https://apiinternal.entel.cl/auth/oauth/v2/token   |\n\n\n# 2. Estructura de entrada (Request)\n## 2.1. Parametros Header\n\n| Campo            | Tipo              | Obligatorio | Descripcion                                                                                                                                                           | Valores posibles - Formato               |\n| -----------------| ------------------| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------------------------------------|\n| Content-Type     | string            | Si          | Indica el tipo de contenido del cuerpo del mensaje enviado al destinatario                                                                                            | application/json; charset=utf-8          |\n| Authorization    | string            | Si          | Token de acceso alfanumerico obtenido de la autenticación OAuth                                                                                                       | Bearer xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx  |\n| applicationCode  | string            | Si          | Código único que representa al sistema consumidor. Es responsabilidad del consumidor enviar este valor                                                                | [Posibles valores](https://tdentel.atlassian.net/wiki/download/attachments/565838019/Master%20Headers%20Codes%20eUSB.xlsx?version=3&modificationDate=1531253559009&cacheVersion=1&api=v2)                  |\n| countryCode      | string            | Si          | Identifica el país desde donde se origina la petición. Es responsabilidad del consumidor enviar este valor                                                            | CHL (Chile), PER (Perú)                  |\n| consumerId       | string            | Si          | Código único de identificación de la ejecución, que identifica el evento del consumidor. Es responsabilidad del consumir enviar este valor según las reglas definidas |[Reglas](https://tdentel.atlassian.net/wiki/download/attachments/1151374/Master%20Headers%20Codes%20eUSB.xlsx?api=v2) |\n| requestTimestamp | string (Datetime) | Si          | Fecha, hora y timezone en el cual se envía la petición del consumidor.                                                                                                | YYYY-MM-DDThh:mm:ss.sss-Z                |  \n\n\n\n## 3.2. Estructura Request Body\n\n                  \n  \n# 4. Estructura de salida (Response)\n\n" + ChildRecursive(response) + "\n \n\n\n\n# 5.  Códigos de  retorno\n\nA continuacion los posibles codigos retornados para este servicio\n\n| Code Status  HTTP                    | Descripción HTTP                                                                              |\n|--------------------------------------|:----------------------------------------------------------------------------------------------|\n| 200 - OK                             | Respuesta estándar para peticiones correctas.                                                 |\n| 201 - CREADO                         | La petición ha sido completada y ha resultado en la creación de un nuevo recurso.             |\n| 400 - PETICIÓN INCORRECTA            | La solicitud contiene sintaxis errónea y no debería repetirse.                                |\n| 401 - NO AUTORIZADO                  | El token de autorización ingresado es inválido.                                               |\n| 404 - NO ENCONTRADO                  | Recurso no encontrado.                                                                        |\n| 405 - MÉTODO NO PERMITIDO            | Una peticiÓn fue hecha a una URI utilizando un método de solicitud no soportado por dicha URI |\n| 422 - ENTIDAD NO PROCESADA           | La solicitud está bien formada pero fue imposible seguirla debido a errores semánticos.       |\n| 429 - LIMITE DE SOLICITUDES EXCEDIDO | Se ha excedido el límite de solicitudes para un período de tiempo determinado .               | \n| 500 - ERROR EN EL SERVIDOR           | El servidor ha encontrado un error inesperado.                                                |\n";
+         deleteparameterBody();
+    }
     return descriptiones;
 
 }
 
 function ChangeNamePath(name) {
-     swagger.paths = renameKeys(swagger.paths, function(key, val) {
+    return renameKeys(swagger.paths, function(key, val) {
          return '/'+name;
 
      });
+}
 
+server.post('/make/swagger/*', function (req, res, next) {
+    let swagger = require('./test.json');
+
+    workbody(req,res,'post',swagger);
+    return next;
+});
+server.put('/make/swagger/*', function (req, res, next) {
+    let swagger = require('./test.json');
+
+    workbody(req,res,'put',swagger);
+    return next;
+});
+server.del('/make/swagger/*', function (req, res, next) {
+    let swagger = require('./test.json');
+
+    workbody(req,res,'delete',swagger);
+    return next;
+});
+server.get('/make/swagger/*', function (req, res, next) {
+    let swagger = require('./test.json');
+
+    workbody(req,res,'get',swagger);
+    return next;
+});
+function changesMethod(path) {
+    return renameKeys(swagger.paths[Object.keys(swagger.paths)[0]], function(key, val) {
+        return path;
+
+    });
+
+
+}
+
+function dectetPATCH(param) {
+    const regex = /^0*(\d{1,3}(\.?\d{3})*)\-?([\dkK])$/gm;
+    console.log(param.includes(regex));
+}
+
+
+
+async function workbody(req, res, methood,original) {
+     let sw = original
+    delete  sw.definitions.RequestCreate;
+     // limpiar parametros
+     //console.log(original.paths["/common/businessInteraction/v1/notifications"].post.parameters[4])
+    let bodyrequest =        {
+        "description": "Estructura request a envíar.",
+        "in": "body",
+        "name": "body",
+        "required": true,
+        "schema": {
+            "$ref": "#/definitions/RequestCreate"
+        }
+    };
+    let querry = req.query;
+    sw.paths[Object.keys(swagger.paths)[0]] = changesMethod('post');
+    sw.paths[Object.keys(swagger.paths)[0]].post.parameters = sw.paths[Object.keys(swagger.paths)[0]].post.parameters.filter(parametro => parametro.in != 'query');
+    sw.paths[Object.keys(swagger.paths)[0]].post.parameters = sw.paths[Object.keys(swagger.paths)[0]].post.parameters.filter(parametro => parametro.in != 'body');
+    sw.info.title = ""+req.headers['title']+"";
+    sw.info.description = ""+req.headers['description']+"";
+    if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )  {
+        sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
+        sw.definitions.RequestCreate = adddefinitionreq(req.body);}
+    else{
+    }
+    let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood);
+    sw.definitions.Response = adddefinitionres(response);
+    sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
+    sw.paths[Object.keys(swagger.paths)[0]].post.description = changes(req.body, response, req.params[Object.keys(req.params)[0]]);
+    if (!querry.isEmpty())
+    {
+        Object.keys(querry).forEach(function (item) {
+            let querrystringtype = {
+                "default": ""+querry[item]+"",
+                "description": "<Cambiar a mano>",
+                "in": "query",
+                "name": ""+item+"",
+                "required": true,
+                "type": "string"
+            };
+            sw.paths[[Object.keys(sw.paths)[0]]].post.parameters.push(querrystringtype)
+
+        });
 
 
     }
-
-server.post('/make/swagger/*', async function (req, res, next) {
-    swagger.info.title = "APIM-example";
-    swagger.info.description = "Ejemplo de Creacion de un swagger";
-    //ChildRecursive(req.body);
-    adddefinitionreq(req.body);
-    let response = await SendPeticionPOST(req.params[Object.keys(req.params)[0]], req.body);
-    //ChildRecursive(response);
-    adddefinitionres(response);
-    ChangeNamePath(req.params[Object.keys(req.params)[0]]);
-    swagger.paths[Object.keys(swagger.paths)[0]].post.description= changes(req.body,response);
+    sw.paths[Object.keys(swagger.paths)[0]] = changesMethod(methood);
     res.setHeader('content-type', 'application/json');
     //console.log(swagger.paths);
-    res.send(JSON.parse(JSON.stringify(swagger)));
-    return next();
-});
+    res.send(JSON.parse(JSON.stringify(sw)));
 
+
+}
 
 server.listen(8080, function() {
     console.log('%s listening at %s', server.name, server.url);
