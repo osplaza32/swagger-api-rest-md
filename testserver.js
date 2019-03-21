@@ -230,43 +230,22 @@ server.post('/enterprise/workforce/resource/v1/workOrders/:id', function(req, re
 
 
 
-server.post('/customer/v1/customerCreditProfiles/evaluateInformation', function(req, res, next) {
+server.post('/product/loyalty/v1/loyaltyProducts/search', function(req, res, next) {
     var customers =
-        {           "result": {
-                "code": "200",
-                "description": "OK",
-                "descriptionDetail": "Procesamiento conclu�do exitosamente",
-                "responseTimestamp": "2018-07-20T15:00:57.579",
-                "transactionId": "00000164b3181704-2e89"
-            },
-        "COMPORTAMIENTO_CLIENTE": {
-            "CANTIDAD_ATRASOS_PAGOS_6MESES_MOVIL": 0,
-                "CANTIDAD_DIAS_MORA_FIBRA": 0,
-                "CANTIDAD_DIAS_MORA_FIJA_RESTO": 0,
-                "CANTIDAD_DIAS_MORA_HOGAR": 0,
-                "CANTIDAD_DIAS_MORA_MOVIL": 0,
-                "CANTIDAD_DIAS_MORA_ULT_DOC_MOVIL": 0,
-                "CANTIDAD_DOC_MOROSOS_FIJA_RESTO": 0,
-                "CANTIDAD_DOC_MOROSOS_MOVIL_HOGAR_EPH": 0,
-                "CANTIDAD_EQ_ARRIENDO": 0,
-                "CANTIDAD_EQ_ARRIENDO_MOVIL_HOGAR_EPH": 0,
-                "CANTIDAD_FACTURAS_EMITIDAS_MOVIL": 0,
-                "CANTIDAD_FACTURAS_PAGADAS_MOVIL": 0,
-                "FECHA_PRIMERA_FACTURA_PAGADA": "string",
-                "FECHA_PRIMERA_FACTURA_VENCIDA": "string",
-                "FLAG_CUENTA_CREDITO_EMPRESA": "string",
-                "FLAG_SERVICIOS_ACTIVO": "string",
-                "MONTO_DEUDA_FIJA_HOGAR_EPH": 0,
-                "MONTO_DEUDA_MOROSA_FIJA_RESTO": 0,
-                "MONTO_MORA_INTERNA_MOVIL": 0,
-                "MONTO_TOTAL_DEUDA_CASTIGADA": 0,
-                "PROMEDIO_ATRASO_DIAS_MORA_MOVIL": 0,
-                "PROMEDIO_MONTO_FACTURA_6M": 0,
-                "PROMEDIO_MONTO_PAGADO": 0
-
-
-
-}
+        {
+                    "result": {
+                        "transactionId": "0000016953b2cfb6-16e4fa",
+                        "code": "200",
+                        "description": "OK",
+                        "descriptionDetail": "Procesamiento concluído exitosamente",
+                        "responseTimestamp": "2019-03-20T11:33:36.260"
+                    },
+                    "InvalidHeader": {
+                        "Result": {
+                            "description": "Ejecución Exitosa",
+                            "status": "OK"
+                }
+            }
         };
 
     res.setHeader('content-type', 'application/json');

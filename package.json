@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
+    "qs": "^6.6.0",
     "querystring": "^0.2.0",
     "rename-keys": "^2.0.1",
     "restify": "^8.0.0",
