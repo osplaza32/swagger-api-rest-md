@@ -1,16 +1,13 @@
 var restify = require('restify');
 var axios = require('axios');
 var qs = require('qs');
-
+const https = require('https');
 const swagger = require('./test.json');
-
 const toJsonSchema = require('to-json-schema');
 var renameKeys = require('rename-keys');
-
 const options = {
     postProcessFnc: (type, schema, value, defaultFunc) =>
-        (type === 'integer' || type === 'string') ? {...schema,example:value} : defaultFunc(type, schema, value),
-
+        (type === 'integer' || type === 'string') ? {...schema,example: String(value)} : defaultFunc(type, schema, value),
 };
 Object.prototype.isEmpty = function() {
     for(var key in this) {
@@ -18,8 +15,7 @@ Object.prototype.isEmpty = function() {
             return false;
     }
     return true;
-}
-
+};
 var server = restify.createServer({
     name: 'Swaggeneame',
     version: '1.0.0'
@@ -31,16 +27,6 @@ server.use(restify.plugins.bodyParser({
     mapParams: true
 }));
 server.use(restify.plugins.acceptParser(server.acceptable));
-
-
-server.get('/make/swagger', function(req, res, next) {
-    res.send(200);
-    return next();
-});
-
-/**
- * @return {string}
- */
 function ChildRecursive(body) {
     let cabecera = '\n|Campo|Tipo|Descripción|Valores posibles - Formato|Valor de ejemplo|\n' +
                     '|:---|:---:|:---:|:---:|---:|\n'
@@ -57,13 +43,9 @@ function ChildRecursive(body) {
 }
 function getElem(obj,prev='',type='',common=''){
     let mdreq
-
     if (prev !== '')
-    {    //console.log('|'+prev+'|'+type+'||||\n')
-        common += '|'+prev+'|'+type+'||||\n';
-    }
+    {common += '|'+prev+'|'+type+'||||\n';}
     Object.keys(obj).forEach(function (item) {
-
         if (typeof obj[item] === 'object' || Array.isArray(obj[item]) && obj[item] !== null)
         {
             if (Array.isArray(obj[item]) && obj[item] !== null )
@@ -71,47 +53,31 @@ function getElem(obj,prev='',type='',common=''){
                 if(prev === '')
                 {
                     let input = obj[item].slice(0,1);
-
                     common=getElem(input,item,'Array',common)
                 }
                 else
                 {
                     let buldprev=prev+'.'+item;
                     let input = obj[item].slice(0,1);
-
                     common =getElem(input,buldprev,'Array',common)
                 }
-
             }else{
             if(prev === '')
-            {
-                common=getElem(obj[item],item,typeof(obj[item]),common)
-            }
+            {common=getElem(obj[item],item,typeof(obj[item]),common)}
             else
-            {
-                let buldprev=prev+'.'+item;
-                common=getElem(obj[item],buldprev,typeof(obj[item]),common)
-            }
+            {let buldprev=prev+'.'+item;
+            common=getElem(obj[item],buldprev,typeof(obj[item]),common)}
             }
         }
-
-        else {
-            let buldprev;
-            if(prev === ''){
-                buldprev=item;}else{ buldprev=prev+'.'+item;}
-                //console.log('|'+buldprev+'|'+typeof obj[item]+'|||'+obj[item]+'|\n');
-                common += '|'+buldprev+'|'+typeof obj[item]+'|||'+obj[item]+'|\n';
-
-        }
+        else {let buldprev;
+            if(prev === ''){buldprev=item;}else{ buldprev=prev+'.'+item;}
+                common += '|'+buldprev+'|'+typeof obj[item]+'|||'+obj[item]+'|\n';}
     }
     );
-
     mdreq = common;
     return mdreq;
-
 }
-
-async function getCredencials(client_id, secret_id) {
+async function getCredencials(client_id, secret_id,agent) {
     const data = qs.stringify({
         grant_type: 'client_credentials',
         client_id: client_id,
@@ -119,7 +85,10 @@ async function getCredencials(client_id, secret_id) {
         scope: 'oob'
     });
     const headers = {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'httpsAgent': agent,
+        'cache-control':'no-cache',
+        'Postman-Token':'9f2f4c20-8189-4a07-b2dc-f6dbae73bb5e'
     };
 
     try {
@@ -127,15 +96,35 @@ async function getCredencials(client_id, secret_id) {
         return response.data;
 
     } catch (e) {
-        console.log(e);
+        //console.log(e);
     }
 
 
 }
 
+function getdataService(url, config, method, data) {
+    var url = 'https://10.49.22.7:8443/'+url;
+    switch (method)
+    {
+        case 'get':
+            break;
+        case 'post':
+            break;
+        case 'put':
+            break;
+        case 'delete':
+            break
+
+    }
+}
+
 async  function SendPeticion(url,data,method,client_id,secret_id) {
-    let barrear = await  getCredencials(client_id,secret_id);
-    console.log(barrear);
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+    const agent = new https.Agent({
+        rejectUnauthorized: false
+    });
+    let barrear = await  getCredencials(client_id,secret_id,agent);
     let config = {
         headers: {
             "applicationCode":"ATG",
@@ -143,34 +132,38 @@ async  function SendPeticion(url,data,method,client_id,secret_id) {
             "countryCode":"CHL",
             "requestTimestamp":"2018-12-12T12:12:12.444-03:00",
             "Content-Type": "application/json",
-            "Authorization": "Bearer "+barrear
+            "Authorization": "Bearer "+barrear.access_token,
+            "httpsAgent": agent
 
         }
     };
+    var dataresp =  getdataService(url,config,method,data);
     try {
-        const response = await axios.post('http://localhost:8081/'+url,data,config);
+        console.log(JSON.stringify(data));
+        const response = await axios.post('https://10.49.22.7:8443/'+url,data,config);
         return response.data;
         
     }
     catch (e) {
-        console.log(e);
+       console.log(e);
     }
 }
-function adddefinitionreq(jsonbodyObj)
-{
-
-   return toJsonSchema(jsonbodyObj,options);
+function removeNulls(obj){
+    var isArray = obj instanceof Array;
+    for (var k in obj){
+        if (obj[k]===null) isArray ? obj.splice(k,1) : delete obj[k];
+        else if (typeof obj[k]=="object") removeNulls(obj[k]);
+    }
 }
-function adddefinitionres(jsonbodyObj)
-{
-    return toJsonSchema(jsonbodyObj,options);
+function adddefinition(jsonbodyObj) {
+    let clone = jsonbodyObj;
+    removeNulls(clone);
+    return toJsonSchema(clone,options);
 }
-
 function deleteparameterBody() {
     swagger.paths[Object.keys(swagger.paths)[0]].post.parameters.splice(4)
 
 }
-
 function ChildRecursive2(queery) {
     let cabecera = '\n|Campo|Tipo|Descripción|Valores posibles - Formato|Valor de ejemplo|\n' +
                     '|:---|:---:|:---:|:---:|---:|\n'
@@ -179,7 +172,6 @@ function ChildRecursive2(queery) {
     });
     return cabecera;
 }
-
 function changes(request, response,uri,tenimosquerry = true,queery = {}) {
     let descriptiones;
     if( typeof request !== 'undefined' && Object.keys(request).length !== 0 ) {
@@ -204,14 +196,12 @@ function changes(request, response,uri,tenimosquerry = true,queery = {}) {
     return descriptiones;
 
 }
-
 function ChangeNamePath(name) {
     return renameKeys(swagger.paths, function(key, val) {
          return '/'+name;
 
      });
 }
-
 server.post('/make/swagger/*', function (req, res, next) {
     let swagger = require('./test.json');
 
@@ -236,8 +226,8 @@ server.get('/make/swagger/*', function (req, res, next) {
     workalldocu(req,res,'get',swagger);
     return next;
 });
-
 server.post('/make/swagger/path/*', function (req, res, next) {
+
     let swagger = require('./test.json');
 
     workbody2(req,res,'post',swagger);
@@ -264,10 +254,7 @@ server.get('/make/swagger/path/*', function (req, res, next) {
 function changesMethod(path) {
     return renameKeys(swagger.paths[Object.keys(swagger.paths)[0]], function(key, val) {
         return path;
-
     });
-
-
 }
 async function workbody2(req, res, methood,original) {
     let sw = original;
@@ -282,10 +269,10 @@ async function workbody2(req, res, methood,original) {
         "schema": {
         }
     };
-    bodyrequest.schema = adddefinitionreq(req.body);
+    bodyrequest.schema = adddefinition(req.body);
     let querry = req.query;
     sw.paths[Object.keys(swagger.paths)[0]] = changesMethod('post');
-    sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema = swagger.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema
+    sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema = swagger.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema;
 
     sw.paths[Object.keys(swagger.paths)[0]].post.parameters = sw.paths[Object.keys(swagger.paths)[0]].post.parameters.filter(parametro => parametro.in != 'query');
     sw.paths[Object.keys(swagger.paths)[0]].post.parameters = sw.paths[Object.keys(swagger.paths)[0]].post.parameters.filter(parametro => parametro.in != 'body');
@@ -293,12 +280,11 @@ async function workbody2(req, res, methood,original) {
     sw.info.description = ""+req.headers['description']+"";
     if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )  {
         sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
-        //sw.definitions.RequestCreate = adddefinitionreq(req.body);
+        //sw.definitions.RequestCreate = adddefinition(req.body);
         }
-
     let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood,""+req.headers['client_id']+"",""+req.headers['secret_id']+"");
-    sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema = adddefinitionres(response)
-    //sw.definitions.Response = adddefinitionres(response);
+    sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema = adddefinition(response)
+    //sw.definitions.Response = adddefinition(response);
     sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
     sw.paths[Object.keys(swagger.paths)[0]].post.description = changes(req.body, response, req.params[Object.keys(req.params)[0]],querry.isEmpty(),querry);
     if (!querry.isEmpty())
@@ -315,18 +301,12 @@ async function workbody2(req, res, methood,original) {
             sw.paths[[Object.keys(sw.paths)[0]]].post.parameters.push(querrystringtype)
 
         });
-
-
     }
     sw.paths[Object.keys(swagger.paths)[0]] = changesMethod(methood);
     res.setHeader('content-type', 'application/json');
     //console.log(swagger.paths);
     res.send(JSON.parse(JSON.stringify(sw.paths)));
-
-
 }
-
-
 async function workalldocu(req, res, methood,original) {
      let sw = original;
     delete  sw.definitions.RequestCreate;
@@ -349,11 +329,11 @@ async function workalldocu(req, res, methood,original) {
     sw.info.description = ""+req.headers['description']+"";
     if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )  {
         sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
-        sw.definitions.RequestCreate = adddefinitionreq(req.body);}
+        sw.definitions.RequestCreate = adddefinition(req.body);}
     else{
     }
-    let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood);
-    sw.definitions.Response = adddefinitionres(response);
+    let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood,""+req.headers['client_id']+"",""+req.headers['secret_id']+"");
+    sw.definitions.Response = adddefinition(response);
     sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
     sw.paths[Object.keys(swagger.paths)[0]].post.description = changes(req.body, response, req.params[Object.keys(req.params)[0]],querry.isEmpty(),querry);
     if (!querry.isEmpty())
@@ -380,7 +360,6 @@ async function workalldocu(req, res, methood,original) {
 
 
 }
-
 server.listen(8080, function() {
     console.log('%s listening at %s', server.name, server.url);
 });
