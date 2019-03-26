@@ -102,20 +102,36 @@ async function getCredencials(client_id, secret_id,agent) {
 
 }
 
-function getdataService(url, config, method, data) {
-    var url = 'https://10.49.22.7:8443/'+url;
-    switch (method)
-    {
-        case 'get':
-            break;
-        case 'post':
-            break;
-        case 'put':
-            break;
-        case 'delete':
-            break
+async function getdataService(url, config, method, data) {
+    try {
+        var urlcomplex = 'https://10.49.22.7:8443/' + url;
+        var output;
+        switch (method) {
+            case 'get':
+                output = await axios.get(urlcomplex,config);
+
+                break;
+            case 'post':
+                output = await axios.post(urlcomplex, data, config);
+
+                break;
+            case 'put':
+                output = await axios.put(urlcomplex, data, config);
+
+                break;
+            case 'delete':
+                output = await axios.delete(urlcomplex,  config);
+
+                break;
+
+        }
+
+    } catch (e) {
+        output = e;
 
     }
+    return output;
+
 }
 
 async  function SendPeticion(url,data,method,client_id,secret_id) {
@@ -137,16 +153,8 @@ async  function SendPeticion(url,data,method,client_id,secret_id) {
 
         }
     };
-    var dataresp =  getdataService(url,config,method,data);
-    try {
-        console.log(JSON.stringify(data));
-        const response = await axios.post('https://10.49.22.7:8443/'+url,data,config);
-        return response.data;
-        
-    }
-    catch (e) {
-       console.log(e);
-    }
+    var dataresp = await  getdataService(url,config,method,data);
+    return dataresp.data;
 }
 function removeNulls(obj){
     var isArray = obj instanceof Array;
