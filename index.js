@@ -2,7 +2,6 @@ var restify = require('restify');
 var axios = require('axios');
 var qs = require('qs');
 require ('custom-env').env(true);
-
 const https = require('https');
 const swagger = require('./test.json');
 const uuidv1 = require('uuid/v1');
@@ -12,9 +11,6 @@ const options = {
     postProcessFnc: (type, schema, value, defaultFunc) =>
         (type === 'integer' || type === 'string') ? {...schema,example: String(value)} : defaultFunc(type, schema, value),
 };
-
-
-
 Object.prototype.isEmpty = function() {
     for(var key in this) {
         if(this.hasOwnProperty(key))
@@ -96,17 +92,12 @@ async function getCredencials(client_id, secret_id,agent) {
         'cache-control':'no-cache',
         'Postman-Token':'9f2f4c20-8189-4a07-b2dc-f6dbae73bb5e'
     };
-
     try {
         const response = await axios.post(process.env.ENV_URL+'auth/oauth/v2/token', data, headers);
         return response.data;
-
-
     } catch (e) {
-        //console.log(e);
+        console.log(e);
     }
-
-
 }
 async function getdataService(url, config, method, data, path='' ) {
     var urlcomplex;
@@ -133,19 +124,15 @@ async function getdataService(url, config, method, data, path='' ) {
                 output = await axios.delete(urlcomplex,  config);
                 break;
         }
-
     } catch (e) {
         output = e;
-
-
+        console.log(e)
     }
     console.log(output.data);
     return output;
-
 }
 async  function SendPeticion(req,method) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
     const agent = new https.Agent({
         rejectUnauthorized: false
     });
@@ -159,7 +146,6 @@ async  function SendPeticion(req,method) {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+barrear.access_token,
             "httpsAgent": agent
-
         }
     };
     var dataresp;
@@ -169,7 +155,6 @@ async  function SendPeticion(req,method) {
     else {
         dataresp  = await  getdataService(req.params[Object.keys(req.params)[0]],config,method,req.body,makepathstring(req.query));
     }
-    
     return dataresp.data;
 }
 function removeNulls(obj){
@@ -226,6 +211,18 @@ function ChangeNamePath(name) {
 
      });
 }
+function ChangeName(name,obj) {
+    return renameKeys(obj, function(key, val) {
+        return name;
+
+    });
+}
+
+function changesMethod(path) {
+    return renameKeys(swagger.paths[Object.keys(swagger.paths)[0]], function(key, val) {
+        return path;
+    });
+}
 server.post('/make/swagger/*', function (req, res, next) {
     let swagger = require('./test.json');
 
@@ -275,11 +272,7 @@ server.get('/make/swagger/path/*', function (req, res, next) {
     workbody2(req,res,'get',swagger);
     return next;
 });
-function changesMethod(path) {
-    return renameKeys(swagger.paths[Object.keys(swagger.paths)[0]], function(key, val) {
-        return path;
-    });
-}
+
 async function workbody2(req, res, methood,original) {
     let sw = original;
     delete  sw.definitions.RequestCreate;
@@ -342,8 +335,7 @@ function makepathstring(data) {
 async function workalldocu(req, res, methood,original) {
      let responseUUID = uuidv1();
      let requestUUID = uuidv1();
-
-    let sw = original;
+     let sw = original;
     delete  sw.definitions.RequestCreate;
      // limpiar parametros
      //console.log(original.paths["/common/businessInteraction/v1/notifications"].post.parameters[4])
@@ -353,7 +345,7 @@ async function workalldocu(req, res, methood,original) {
         "name": "body",
         "required": true,
         "schema": {
-            "$ref": "#/definitions/RequestCreate"
+            "$ref": "#/definitions/"+requestUUID
         }
     };
     let querry = req.query;
@@ -365,10 +357,14 @@ async function workalldocu(req, res, methood,original) {
     if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )
     {
         sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
-        sw.definitions.RequestCreate = adddefinition(req.body);
+
+        sw.definitions[requestUUID] = adddefinition(req.body);
+
     }
+
     let response = await SendPeticion(req,methood);
-    sw.definitions.Response = adddefinition(response);
+    sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema.$ref = "#/definitions/"+responseUUID;
+    sw.definitions[responseUUID] = adddefinition(response);
     sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
     sw.paths[Object.keys(swagger.paths)[0]].post.description = changes(req.body, response, req.params[Object.keys(req.params)[0]],querry.isEmpty(),querry);
     if (!querry.isEmpty())
@@ -383,16 +379,11 @@ async function workalldocu(req, res, methood,original) {
                 "type": "string"
             };
             sw.paths[[Object.keys(sw.paths)[0]]].post.parameters.push(querrystringtype)
-
         });
-
-
     }
     sw.paths[Object.keys(swagger.paths)[0]] = changesMethod(methood);
     res.setHeader('content-type', 'application/json');
     res.send(JSON.parse(JSON.stringify(sw)));
-
-
 }
 server.listen(8080, function() {
     console.log('%s listening at %s', server.name, server.url);
