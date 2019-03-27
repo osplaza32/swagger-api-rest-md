@@ -1,14 +1,20 @@
 var restify = require('restify');
 var axios = require('axios');
 var qs = require('qs');
+require ('custom-env').env(true);
+
 const https = require('https');
 const swagger = require('./test.json');
+const uuidv1 = require('uuid/v1');
 const toJsonSchema = require('to-json-schema');
 var renameKeys = require('rename-keys');
 const options = {
     postProcessFnc: (type, schema, value, defaultFunc) =>
         (type === 'integer' || type === 'string') ? {...schema,example: String(value)} : defaultFunc(type, schema, value),
 };
+
+
+
 Object.prototype.isEmpty = function() {
     for(var key in this) {
         if(this.hasOwnProperty(key))
@@ -92,8 +98,9 @@ async function getCredencials(client_id, secret_id,agent) {
     };
 
     try {
-        const response = await axios.post('https://10.49.22.7:8443/auth/oauth/v2/token', data, headers);
+        const response = await axios.post(process.env.ENV_URL+'auth/oauth/v2/token', data, headers);
         return response.data;
+
 
     } catch (e) {
         //console.log(e);
@@ -101,46 +108,48 @@ async function getCredencials(client_id, secret_id,agent) {
 
 
 }
-
-async function getdataService(url, config, method, data) {
+async function getdataService(url, config, method, data, path='' ) {
+    var urlcomplex;
     try {
-        var urlcomplex = 'https://10.49.22.7:8443/' + url;
+        if (path === "")
+        {
+         urlcomplex = process.env.ENV_URL + url;}
+        else{
+            urlcomplex =  process.env.ENV_URL + url+'?'+path;
+        }
         var output;
+        console.log(urlcomplex)
         switch (method) {
             case 'get':
                 output = await axios.get(urlcomplex,config);
-
                 break;
             case 'post':
                 output = await axios.post(urlcomplex, data, config);
-
                 break;
             case 'put':
                 output = await axios.put(urlcomplex, data, config);
-
                 break;
             case 'delete':
                 output = await axios.delete(urlcomplex,  config);
-
                 break;
-
         }
 
     } catch (e) {
         output = e;
 
+
     }
+    console.log(output.data);
     return output;
 
 }
-
-async  function SendPeticion(url,data,method,client_id,secret_id) {
+async  function SendPeticion(req,method) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
     const agent = new https.Agent({
         rejectUnauthorized: false
     });
-    let barrear = await  getCredencials(client_id,secret_id,agent);
+    let barrear = await  getCredencials(""+req.headers['client_id']+"",""+req.headers['secret_id']+"",agent);
     let config = {
         headers: {
             "applicationCode":"ATG",
@@ -153,7 +162,14 @@ async  function SendPeticion(url,data,method,client_id,secret_id) {
 
         }
     };
-    var dataresp = await  getdataService(url,config,method,data);
+    var dataresp;
+    if (!/\?.+/.test(req.url)) {
+        dataresp = await  getdataService(req.params[Object.keys(req.params)[0]],config,method,req.body);
+    }
+    else {
+        dataresp  = await  getdataService(req.params[Object.keys(req.params)[0]],config,method,req.body,makepathstring(req.query));
+    }
+    
     return dataresp.data;
 }
 function removeNulls(obj){
@@ -267,9 +283,7 @@ function changesMethod(path) {
 async function workbody2(req, res, methood,original) {
     let sw = original;
     delete  sw.definitions.RequestCreate;
-    // limpiar parametros
-    //console.log(original.paths["/common/businessInteraction/v1/notifications"].post.parameters[4])
-    let bodyrequest =        {
+    let bodyrequest = {
         "description": "Estructura request a envíar.",
         "in": "body",
         "name": "body",
@@ -290,7 +304,7 @@ async function workbody2(req, res, methood,original) {
         sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
         //sw.definitions.RequestCreate = adddefinition(req.body);
         }
-    let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood,""+req.headers['client_id']+"",""+req.headers['secret_id']+"");
+    let response = await SendPeticion(req,methood);
     sw.paths[Object.keys(swagger.paths)[0]].post.responses["200"].schema = adddefinition(response)
     //sw.definitions.Response = adddefinition(response);
     sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
@@ -315,8 +329,21 @@ async function workbody2(req, res, methood,original) {
     //console.log(swagger.paths);
     res.send(JSON.parse(JSON.stringify(sw.paths)));
 }
+function makepathstring(data) {
+    if (typeof (data) === 'string') return data;
+    var query = [];
+    for (var key in data) {
+        if (data.hasOwnProperty(key)) {
+            query.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+        }
+    }
+    return query.join('&');
+}
 async function workalldocu(req, res, methood,original) {
-     let sw = original;
+     let responseUUID = uuidv1();
+     let requestUUID = uuidv1();
+
+    let sw = original;
     delete  sw.definitions.RequestCreate;
      // limpiar parametros
      //console.log(original.paths["/common/businessInteraction/v1/notifications"].post.parameters[4])
@@ -335,12 +362,12 @@ async function workalldocu(req, res, methood,original) {
     sw.paths[Object.keys(swagger.paths)[0]].post.parameters = sw.paths[Object.keys(swagger.paths)[0]].post.parameters.filter(parametro => parametro.in != 'body');
     sw.info.title = ""+req.headers['title']+"";
     sw.info.description = ""+req.headers['description']+"";
-    if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )  {
+    if (typeof req.body !== 'undefined' && Object.keys(req.body).length !== 0  )
+    {
         sw.paths[[Object.keys(sw.paths)[0]]].post.parameters[sw.paths[Object.keys(swagger.paths)[0]].post.parameters.length ] = bodyrequest;
-        sw.definitions.RequestCreate = adddefinition(req.body);}
-    else{
+        sw.definitions.RequestCreate = adddefinition(req.body);
     }
-    let response = await SendPeticion(req.params[Object.keys(req.params)[0]], req.body,methood,""+req.headers['client_id']+"",""+req.headers['secret_id']+"");
+    let response = await SendPeticion(req,methood);
     sw.definitions.Response = adddefinition(response);
     sw.paths = ChangeNamePath(req.params[Object.keys(req.params)[0]]);
     sw.paths[Object.keys(swagger.paths)[0]].post.description = changes(req.body, response, req.params[Object.keys(req.params)[0]],querry.isEmpty(),querry);
@@ -363,7 +390,6 @@ async function workalldocu(req, res, methood,original) {
     }
     sw.paths[Object.keys(swagger.paths)[0]] = changesMethod(methood);
     res.setHeader('content-type', 'application/json');
-    //console.log(swagger.paths);
     res.send(JSON.parse(JSON.stringify(sw)));
 
 
